@@ -469,11 +469,16 @@
     </div>
 
     <script>
-        // Check if balance already exists in memory, else set to ₹9,870
-        let currentBalance = localStorage.getItem('panelBalance') ? parseInt(localStorage.getItem('panelBalance')) : 9870;
+        // Setup initial balance strictly to ₹9,870 if not saved earlier
+        if (localStorage.getItem('panelBalance') === null) {
+            localStorage.setItem('panelBalance', 9870);
+        }
+        let currentBalance = parseInt(localStorage.getItem('panelBalance'));
+        
+        // Render initial UI wallet display safely
         document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
 
-        // Setup Duration options dynamically
+        // Setup Duration options dynamically (1 to 30 Days)
         const durationSelect = document.getElementById('durationSelect');
         for (let i = 1; i <= 30; i++) {
             let opt = document.createElement('option');
@@ -482,10 +487,10 @@
             durationSelect.appendChild(opt);
         }
 
-        // Updated Price Logic (+10 Rupees Increased)
+        // Price configuration (+10 Rupees update)
         function updatePrice() {
             const days = parseInt(document.getElementById('durationSelect').value);
-            let price = 50; // Increased base price from 40 to 50
+            let price = 50; 
             if (days > 1) {
                 price = 50 + (days - 1) * 20; 
             }
@@ -497,7 +502,7 @@
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
             updatePrice();
-            loadHistory(); // Load saved history on login
+            loadHistory(); // Persistent History load on successful entry
         }
 
         function updateWalletUI() {
@@ -505,7 +510,7 @@
             document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
         }
 
-        // Add Credit Action Logic
+        // Add Credit system
         function addCreditPrompt() {
             let amountInput = prompt("Enter the credit amount to add (₹):");
             if (amountInput === null) return; 
@@ -532,7 +537,7 @@
             return result;
         }
 
-        // Key Generation with Auto Balance Deduction & Permanent Storage
+        // Secure key generation & auto deduction logic
         function generateKey() {
             const days = parseInt(document.getElementById('durationSelect').value);
             let currentPrice = 50;
@@ -540,13 +545,13 @@
                 currentPrice = 50 + (days - 1) * 20;
             }
 
-            // Check if user has sufficient balance
+            // Safety balance check block
             if (currentBalance < currentPrice) {
                 alert("Insufficient Balance! Please add credit first.");
                 return;
             }
 
-            // Deduct Balance
+            // Deduct funds automatically
             currentBalance -= currentPrice;
             updateWalletUI();
 
@@ -573,7 +578,6 @@
 
             const rowId = "row-" + Date.now();
             
-            // Create item object for storage
             const historyItem = {
                 id: rowId,
                 time: currentTime,
@@ -584,7 +588,7 @@
                 status: "ACTIVE"
             };
 
-            // Save to localStorage
+            // Permanent storage pipeline
             let currentHistory = JSON.parse(localStorage.getItem('keyHistory')) || [];
             currentHistory.unshift(historyItem);
             localStorage.setItem('keyHistory', JSON.stringify(currentHistory));
@@ -592,7 +596,6 @@
             renderRow(historyItem, true);
         }
 
-        // Render history log row helper
         function renderRow(item, prepend = false) {
             const tbody = document.getElementById('historyTableBody');
             const row = document.createElement('tr');
@@ -603,7 +606,4 @@
                 <div class="history-actions">
                     <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${item.key}')">Reset</button>
                     <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${item.id}', '${item.key}')">Block</button>
-                </div>
-            ` : '';
-
-       
+    </div>
