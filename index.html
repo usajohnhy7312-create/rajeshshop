@@ -103,7 +103,7 @@
         }
 
         .hidden {
-            display: none !important;
+            display: none;
         }
 
         .profile-bar {
@@ -332,7 +332,7 @@
 
     <div id="loginPage" class="container">
         <h1>Hack Seller Panel</h1>
-        <form id="loginForm" onsubmit="handleLogin(event); return false;">
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
                 <label>Username</label>
                 <input type="text" id="username" placeholder="Enter Username" required>
@@ -469,17 +469,21 @@
     </div>
 
     <script>
-        // Force initial storage amount setup cleanly
         let currentBalance = 9870;
-        if (localStorage.getItem('panelBalance') !== null) {
-            currentBalance = parseInt(localStorage.getItem('panelBalance'));
-        } else {
-            localStorage.setItem('panelBalance', currentBalance);
-        }
-        
-        document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
 
-        // Dynamic Day Options Setup
+        // Load saved data (balance + history) on login
+        function loadSavedData() {
+            const savedBalance = localStorage.getItem('sellerBalance');
+            if (savedBalance) currentBalance = parseInt(savedBalance);
+
+            document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
+        }
+
+        function saveBalance() {
+            localStorage.setItem('sellerBalance', currentBalance);
+        }
+
+        // Setup Duration options
         const durationSelect = document.getElementById('durationSelect');
         for (let i = 1; i <= 30; i++) {
             let opt = document.createElement('option');
@@ -488,28 +492,23 @@
             durationSelect.appendChild(opt);
         }
 
-        // Price Config (+10 INR Increase Added globally)
         function updatePrice() {
             const days = parseInt(document.getElementById('durationSelect').value);
-            let price = 50; 
+            let price = 50; // Base price increased by 10
             if (days > 1) {
                 price = 50 + (days - 1) * 20; 
             }
             document.getElementById('calculatedPrice').innerText = "₹" + price;
         }
 
-        // Full Proof Navigation Unlocked
         function handleLogin(event) {
-            if(event) event.preventDefault();
+            event.preventDefault();
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
+            
+            loadSavedData();   // Load previous balance & history
             updatePrice();
-            loadHistory(); 
-        }
-
-        function updateWalletUI() {
-            localStorage.setItem('panelBalance', currentBalance);
-            document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
+            loadHistory();     // Persistent history
         }
 
         function addCreditPrompt() {
@@ -521,7 +520,8 @@
                 alert("Please enter a valid positive number!");
             } else {
                 currentBalance += amount;
-                updateWalletUI();
+                document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
+                saveBalance();
                 alert("₹" + amount + " successfully credited to your account!");
             }
         }
@@ -538,26 +538,28 @@
             return result;
         }
 
-        // Auto Reduction core engine
         function generateKey() {
-            const days = parseInt(document.getElementById('durationSelect').value);
-            let currentPrice = 50;
-            if (days > 1) {
-                currentPrice = 50 + (days - 1) * 20;
-            }
-
-            if (currentBalance < currentPrice) {
-                alert("Insufficient Balance! Please add credit first.");
-                return;
-            }
-
-            currentBalance -= currentPrice;
-            updateWalletUI();
-
             const selectEl = document.getElementById('productSelect');
             const productName = selectEl.options[selectEl.selectedIndex].text;
             const productPrefix = selectEl.value;
+            
+            const days = parseInt(document.getElementById('durationSelect').value);
             const devices = document.getElementById('deviceSelect').value;
+            
+            let price = 50;
+            if (days > 1) price = 50 + (days - 1) * 20;
+
+            // Check balance
+            if (currentBalance < price) {
+                alert("Insufficient Balance! You need ₹" + price + " to generate this key.");
+                return;
+            }
+
+            // Deduct balance
+            currentBalance -= price;
+            document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
+            saveBalance();
+
             const generatedKey = makeRandomKey(productPrefix);
             
             const now = new Date();
@@ -565,49 +567,45 @@
             const expiryString = now.toLocaleString();
             const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            const statusBadge = document.getElementById('resStatus');
-            statusBadge.className = "badge-active";
-            statusBadge.innerText = "ACTIVE";
-
+            // Show result
+            document.getElementById('resStatus').className = "badge-active";
+            document.getElementById('resStatus').innerText = "ACTIVE";
             document.getElementById('resProduct').innerText = productName;
             document.getElementById('resDetails').innerText = `${days} Days / ${devices}`;
             document.getElementById('resKey').innerText = generatedKey;
             document.getElementById('resExpiry').innerText = expiryString;
             document.getElementById('resultBox').classList.remove('hidden');
 
-            const rowId = "row-" + Date.now();
-            
-            const historyItem = {
-                id: rowId,
-                time: currentTime,
-                productName: productName,
-                days: days,
-                devices: devices,
-                key: generatedKey,
-                status: "ACTIVE"
-            };
-
-            let currentHistory = [];
-            try {
-                let saved = localStorage.getItem('keyHistory');
-                if(saved) currentHistory = JSON.parse(saved);
-            } catch(e) { currentHistory = []; }
-
-            currentHistory.unshift(historyItem);
-            localStorage.setItem('keyHistory', JSON.stringify(currentHistory));
-
-            renderRow(historyItem, true);
+            // Save to history (persistent)
+            saveToHistory(currentTime, productName, generatedKey, days, devices, price);
         }
 
-        function renderRow(item, prepend = false) {
+        // Persistent History using localStorage
+        function saveToHistory(time, product, key, days, devices, price) {
+            let history = JSON.parse(localStorage.getItem('keyHistory')) || [];
+            history.unshift({
+                time: time,
+                product: product,
+                key: key,
+                days: days,
+                devices: devices,
+                price: price,
+                status: "ACTIVE"
+            });
+            localStorage.setItem('keyHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
             const tbody = document.getElementById('historyTableBody');
-            if(!tbody) return;
-            const row = document.createElement('tr');
-            row.id = item.id;
+            tbody.innerHTML = '';
+            let history = JSON.parse(localStorage.getItem('keyHistory')) || [];
             
-            let statusBadgeClass = item.status === "ACTIVE" ? "badge-active" : "badge-blocked";
-            let actionsHTML = item.status === "ACTIVE" ? `
-                <div class="history-actions">
-                    <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${item.key}')">Reset</button>
-                    <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${item.id}', '${item.key}')">Block</button>
-              
+            history.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.time}</td>
+                    <td><strong>${item.product}</strong><br><small style="color:var(--text-muted);">${item.days} Days | ${item.devices}</small></td>
+                    <td style="color:var(--accent-color); font-family:monospace;">${item.key}</td>
+                    <td>
+            
