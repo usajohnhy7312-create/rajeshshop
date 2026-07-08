@@ -103,7 +103,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .profile-bar {
@@ -332,7 +332,7 @@
 
     <div id="loginPage" class="container">
         <h1>Hack Seller Panel</h1>
-        <form id="loginForm" onsubmit="handleLogin(event)">
+        <form id="loginForm" onsubmit="handleLogin(event); return false;">
             <div class="form-group">
                 <label>Username</label>
                 <input type="text" id="username" placeholder="Enter Username" required>
@@ -469,7 +469,7 @@
     </div>
 
     <script>
-        // Balance setup with direct numeric value safety
+        // Force initial storage amount setup cleanly
         let currentBalance = 9870;
         if (localStorage.getItem('panelBalance') !== null) {
             currentBalance = parseInt(localStorage.getItem('panelBalance'));
@@ -477,10 +477,9 @@
             localStorage.setItem('panelBalance', currentBalance);
         }
         
-        // Render current state balance on UI safely
         document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
 
-        // Setup Duration options dynamically (1 to 30 Days)
+        // Dynamic Day Options Setup
         const durationSelect = document.getElementById('durationSelect');
         for (let i = 1; i <= 30; i++) {
             let opt = document.createElement('option');
@@ -489,7 +488,7 @@
             durationSelect.appendChild(opt);
         }
 
-        // Price setup update (+10 Rupees standard added)
+        // Price Config (+10 INR Increase Added globally)
         function updatePrice() {
             const days = parseInt(document.getElementById('durationSelect').value);
             let price = 50; 
@@ -499,9 +498,9 @@
             document.getElementById('calculatedPrice').innerText = "₹" + price;
         }
 
-        // Fixed Unbreakable Entry Flow
+        // Full Proof Navigation Unlocked
         function handleLogin(event) {
-            event.preventDefault();
+            if(event) event.preventDefault();
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
             updatePrice();
@@ -513,7 +512,6 @@
             document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
         }
 
-        // Add credit workflow
         function addCreditPrompt() {
             let amountInput = prompt("Enter the credit amount to add (₹):");
             if (amountInput === null) return; 
@@ -540,7 +538,7 @@
             return result;
         }
 
-        // Instant Balance deduction engine
+        // Auto Reduction core engine
         function generateKey() {
             const days = parseInt(document.getElementById('durationSelect').value);
             let currentPrice = 50;
@@ -548,7 +546,6 @@
                 currentPrice = 50 + (days - 1) * 20;
             }
 
-            // Funds filter
             if (currentBalance < currentPrice) {
                 alert("Insufficient Balance! Please add credit first.");
                 return;
@@ -590,7 +587,6 @@
                 status: "ACTIVE"
             };
 
-            // Injecting directly into localized pipeline
             let currentHistory = [];
             try {
                 let saved = localStorage.getItem('keyHistory');
@@ -612,4 +608,6 @@
             let statusBadgeClass = item.status === "ACTIVE" ? "badge-active" : "badge-blocked";
             let actionsHTML = item.status === "ACTIVE" ? `
                 <div class="history-actions">
-                    <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${item.key}')">R
+                    <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${item.key}')">Reset</button>
+                    <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${item.id}', '${item.key}')">Block</button>
+              
