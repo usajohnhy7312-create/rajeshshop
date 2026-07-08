@@ -122,30 +122,54 @@
             font-weight: bold;
         }
 
+        /* BIG STATS DESIGN */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 25px;
         }
 
         .stat-card {
             background: #1f242c;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 15px 10px;
             text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
         }
 
         .stat-card p {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-muted);
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
         }
 
         .stat-card h3 {
-            font-size: 14px;
-            color: var(--text-color);
+            font-size: 22px; /* Bada Akshar */
+            color: var(--accent-color); /* Neon Glow Look */
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* Price Counter Style */
+        .price-display {
+            background: rgba(0, 255, 102, 0.05);
+            border: 1px solid rgba(0, 255, 102, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price-val {
+            font-size: 18px;
+            color: var(--accent-color);
+            font-weight: bold;
         }
 
         /* Result Panel */
@@ -265,19 +289,19 @@
             <span class="wallet-amt">Amount: ₹5,000</span>
         </div>
 
-        <!-- Admin Analytics Cards -->
+        <!-- Admin Analytics Cards with Big Numbers -->
         <div class="stats-grid">
             <div class="stat-card">
-                <p>Total Sales</p>
-                <h3>₹1,00,000</h3>
+                <p>Total Keys</p>
+                <h3>20549</h3>
             </div>
             <div class="stat-card">
-                <p>Monthly Income</p>
-                <h3>₹5,500</h3>
+                <p>Monthly</p>
+                <h3>₹50000</h3>
             </div>
             <div class="stat-card">
-                <p>Today's Sales</p>
-                <h3 id="todaySales">₹350</h3>
+                <p>Today</p>
+                <h3>₹650</h3>
             </div>
         </div>
 
@@ -311,7 +335,7 @@
 
         <div class="form-group">
             <label>Duration</label>
-            <select id="durationSelect"></select>
+            <select id="durationSelect" onchange="updatePrice()"></select>
         </div>
 
         <div class="form-group">
@@ -324,6 +348,12 @@
                 <option>5 Devices</option>
                 <option>Unlimited Devices</option>
             </select>
+        </div>
+
+        <!-- Real-time Price Display Card -->
+        <div class="price-display">
+            <span style="font-size: 14px; color: var(--text-muted);">Calculated Price:</span>
+            <span id="calculatedPrice" class="price-val">₹40</span>
         </div>
 
         <button onclick="generateKey()">Generate Key</button>
@@ -369,7 +399,6 @@
                         </tr>
                     </thead>
                     <tbody id="historyTableBody">
-                        <!-- Dynamic history logs will insert here -->
                     </tbody>
                 </table>
             </div>
@@ -387,11 +416,25 @@
             durationSelect.appendChild(opt);
         }
 
+        // Decreasing incremental pricing logic (1 day = 40, 2 days = 60, etc.)
+        function updatePrice() {
+            const days = parseInt(document.getElementById('durationSelect').value);
+            let price = 40; // Base price for 1 day
+            
+            if (days > 1) {
+                // Pehle din ka 40, baaki har din ke liye ₹20-₹25 jodu (Discounted rate)
+                price = 40 + (days - 1) * 20; 
+            }
+            
+            document.getElementById('calculatedPrice').innerText = "₹" + price;
+        }
+
         // Bypass Authentication Login Logic
         function handleLogin(event) {
             event.preventDefault();
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
+            updatePrice(); // Trigger price load
         }
 
         // Random Alphanumeric Key Generator Logic
@@ -439,7 +482,7 @@
                 <td style="color:var(--accent-color); font-family:monospace;">${generatedKey}</td>
                 <td><span class="badge-active">ACTIVE</span></td>
             `;
-            tbody.insertBefore(row, tbody.firstChild); // Adds newest items to the top
+            tbody.insertBefore(row, tbody.firstChild);
         }
 
         // Copy Clipboard Function
@@ -453,4 +496,3 @@
     </script>
 </body>
 </html>
-
