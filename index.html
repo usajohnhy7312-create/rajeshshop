@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rajesh Hack Seller</title>
+    <style>
+        :root {
+            --bg-color: #0d0f12;
+            --panel-bg: #161b22;
+            --accent-color: #00ff66;
+            --text-color: #ffffff;
+            --text-muted: #8b949e;
+            --border-color: #30363d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 25px;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+        }
+
+        /* Login Page Style */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #21262d;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 15px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: #00cc52;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Dashboard Style */
+        .hidden {
+            display: none;
+        }
+
+        .profile-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #21262d;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .wallet-amt {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #1f242c;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-card p {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        /* Result Panel */
+        .result-box {
+            background: #1f242c;
+            border: 1px dashed var(--accent-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .result-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .badge-active {
+            background: rgba(0, 255, 102, 0.2);
+            color: var(--accent-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .key-display {
+            font-family: monospace;
+            background: #21262d;
+            padding: 5px;
+            border-radius: 4px;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .copy-btn {
+            background: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 3px 8px;
+            font-size: 11px;
+            width: auto;
+            display: inline-block;
+            margin-left: 5px;
+            text-transform: none;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        /* History Table */
+        .history-section {
+            margin-top: 25px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .history-title {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--text-muted);
+            background: #1f242c;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. ENTRY/LOGIN PAGE -->
+    <div id="loginPage" class="container">
+        <h1>Rajesh Hack Seller</h1>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter Username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter Password" required>
+            </div>
+            <button type="submit">Enter</button>
+        </form>
+    </div>
+
+    <!-- 2. MAIN DASHBOARD PAGE -->
+    <div id="dashboardPage" class="container hidden">
+        <h1>Rajesh Hack Seller</h1>
+        
+        <div class="profile-bar">
+            <span>Welcome, Admin</span>
+            <span class="wallet-amt">Amount: ₹5,000</span>
+        </div>
+
+        <!-- Admin Analytics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>Total Sales</p>
+                <h3>₹1,00,000</h3>
+            </div>
+            <div class="stat-card">
+                <p>Monthly Income</p>
+                <h3>₹5,500</h3>
+            </div>
+            <div class="stat-card">
+                <p>Today's Sales</p>
+                <h3 id="todaySales">₹350</h3>
+            </div>
+        </div>
+
+        <!-- Configuration Form -->
+        <div class="form-group">
+            <label>Select Product</label>
+            <select id="productSelect">
+                <option>Alpha Regedit iOS</option>
+                <option>BR MODS ROOT ANDROID</option>
+                <option>FF PROXY ANDROID DRIP</option>
+                <option>FLUORITE 8 BALLPOOL IOS</option>
+                <option>GBOX OFFICIAL</option>
+                <option>GUILD GLORY BOT</option>
+                <option>MIGUL - MONITE IOS [BASIC]</option>
+                <option>MIGUL - MONITE IOS [PRO]</option>
+                <option>Stricks BR (ALPHA-X)</option>
+                <option>BR MODS SILENTAIM PC</option>
+                <option>Drip Client ApkMod</option>
+                <option>Drip Client Pc Exe</option>
+                <option>Drip Client Root</option>
+                <option>Esign Certificate</option>
+                <option>EzTeam 8BP Apk</option>
+                <option>Fluorite iOS FF</option>
+                <option>HG ApkMod + Root</option>
+                <option>Haxx Cker Pro</option>
+                <option>Lkteam Root + Pc</option>
+                <option>PatoTeam ApkMod</option>
+                <option>Prime ApkMod</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Duration</label>
+            <select id="durationSelect"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Max Devices Allowed</label>
+            <select id="deviceSelect">
+                <option>1 Device</option>
+                <option>2 Devices</option>
+                <option>3 Devices</option>
+                <option>4 Devices</option>
+                <option>5 Devices</option>
+                <option>Unlimited Devices</option>
+            </select>
+        </div>
+
+        <button onclick="generateKey()">Generate Key</button>
+
+        <!-- Key Generation Output Box -->
+        <div id="resultBox" class="result-box hidden">
+            <div class="result-row">
+                <span>Status:</span>
+                <span class="badge-active">ACTIVE</span>
+            </div>
+            <div class="result-row">
+                <span>Product Name:</span>
+                <span id="resProduct" style="color: var(--text-muted);"></span>
+            </div>
+            <div class="result-row">
+                <span>Duration / Device:</span>
+                <span id="resDetails" style="color: var(--text-muted);"></span>
+            </div>
+            <div class="result-row" style="align-items: center; margin-top: 10px;">
+                <span>Generated Key:</span>
+                <div>
+                    <span id="resKey" class="key-display"></span>
+                    <button class="copy-btn" onclick="copyKey()">Copy</button>
+                </div>
+            </div>
+            <div class="result-row" style="font-size: 11px; margin-top: 5px; color: var(--text-muted);">
+                <span>Expiry:</span>
+                <span id="resExpiry"></span>
+            </div>
+        </div>
+
+        <!-- 4. KEY GENERATION HISTORY LOG -->
+        <div class="history-section">
+            <div class="history-title">Key Generation History</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Product</th>
+                            <th>Key</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Dynamic history logs will insert here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Setup Duration options 1 to 30 Days dynamically
+        const durationSelect = document.getElementById('durationSelect');
+        for (let i = 1; i <= 30; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = i === 1 ? "1 Day" : i + " Days";
+            durationSelect.appendChild(opt);
+        }
+
+        // Bypass Authentication Login Logic
+        function handleLogin(event) {
+            event.preventDefault();
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('dashboardPage').classList.remove('hidden');
+        }
+
+        // Random Alphanumeric Key Generator Logic
+        function makeRandomKey() {
+            let result = 'RAJESH-';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            for (let i = 0; i < 4; i++) {
+                for(let j=0; j<4; j++) {
+                    result += characters.charAt(Math.floor(Math.random() * characters.length));
+                }
+                if(i < 3) result += '-';
+            }
+            return result;
+        }
+
+        // Generate Logic
+        function generateKey() {
+            const product = document.getElementById('productSelect').value;
+            const days = parseInt(document.getElementById('durationSelect').value);
+            const devices = document.getElementById('deviceSelect').value;
+            
+            const generatedKey = makeRandomKey();
+            
+            // Calculate Expiry Date
+            const now = new Date();
+            now.setDate(now.getDate() + days);
+            const expiryString = now.toLocaleString();
+
+            // Current timestamp for History
+            const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            // Display in Output Panel
+            document.getElementById('resProduct').innerText = product;
+            document.getElementById('resDetails').innerText = `${days} Days / ${devices}`;
+            document.getElementById('resKey').innerText = generatedKey;
+            document.getElementById('resExpiry').innerText = expiryString;
+            document.getElementById('resultBox').classList.remove('hidden');
+
+            // Add dynamic log entry to History Table
+            const tbody = document.getElementById('historyTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${currentTime}</td>
+                <td><strong>${product}</strong><br><small style="color:var(--text-muted);">${days} Days | ${devices}</small></td>
+                <td style="color:var(--accent-color); font-family:monospace;">${generatedKey}</td>
+                <td><span class="badge-active">ACTIVE</span></td>
+            `;
+            tbody.insertBefore(row, tbody.firstChild); // Adds newest items to the top
+        }
+
+        // Copy Clipboard Function
+        function copyKey() {
+            const keyText = document.getElementById('resKey').innerText;
+            if (keyText) {
+                navigator.clipboard.writeText(keyText);
+                alert("Key copied successfully: " + keyText);
+            }
+        }
+    </script>
+</body>
+</html>
+
