@@ -417,7 +417,7 @@
 
         <div class="price-display">
             <span style="font-size: 14px; color: var(--text-muted);">Calculated Price:</span>
-            <span id="calculatedPrice" class="price-val">₹50</span>
+            <span id="calculatedPrice" class="price-val">₹40</span>
         </div>
 
         <button onclick="generateKey()">Generate Key</button>
@@ -469,21 +469,10 @@
     </div>
 
     <script>
+        // Syncing with your structural balance value (₹9,870)
         let currentBalance = 9870;
 
-        // Load saved data (balance + history) on login
-        function loadSavedData() {
-            const savedBalance = localStorage.getItem('sellerBalance');
-            if (savedBalance) currentBalance = parseInt(savedBalance);
-
-            document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
-        }
-
-        function saveBalance() {
-            localStorage.setItem('sellerBalance', currentBalance);
-        }
-
-        // Setup Duration options
+        // Setup Duration options dynamically
         const durationSelect = document.getElementById('durationSelect');
         for (let i = 1; i <= 30; i++) {
             let opt = document.createElement('option');
@@ -494,9 +483,9 @@
 
         function updatePrice() {
             const days = parseInt(document.getElementById('durationSelect').value);
-            let price = 50; // Base price increased by 10
+            let price = 40;
             if (days > 1) {
-                price = 50 + (days - 1) * 20; 
+                price = 40 + (days - 1) * 20; 
             }
             document.getElementById('calculatedPrice').innerText = "₹" + price;
         }
@@ -505,12 +494,10 @@
             event.preventDefault();
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
-            
-            loadSavedData();   // Load previous balance & history
             updatePrice();
-            loadHistory();     // Persistent history
         }
 
+        // Add Credit Action Logic
         function addCreditPrompt() {
             let amountInput = prompt("Enter the credit amount to add (₹):");
             if (amountInput === null) return; 
@@ -521,7 +508,6 @@
             } else {
                 currentBalance += amount;
                 document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
-                saveBalance();
                 alert("₹" + amount + " successfully credited to your account!");
             }
         }
@@ -546,20 +532,6 @@
             const days = parseInt(document.getElementById('durationSelect').value);
             const devices = document.getElementById('deviceSelect').value;
             
-            let price = 50;
-            if (days > 1) price = 50 + (days - 1) * 20;
-
-            // Check balance
-            if (currentBalance < price) {
-                alert("Insufficient Balance! You need ₹" + price + " to generate this key.");
-                return;
-            }
-
-            // Deduct balance
-            currentBalance -= price;
-            document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
-            saveBalance();
-
             const generatedKey = makeRandomKey(productPrefix);
             
             const now = new Date();
@@ -567,45 +539,67 @@
             const expiryString = now.toLocaleString();
             const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            // Show result
-            document.getElementById('resStatus').className = "badge-active";
-            document.getElementById('resStatus').innerText = "ACTIVE";
+            const statusBadge = document.getElementById('resStatus');
+            statusBadge.className = "badge-active";
+            statusBadge.innerText = "ACTIVE";
+
             document.getElementById('resProduct').innerText = productName;
             document.getElementById('resDetails').innerText = `${days} Days / ${devices}`;
             document.getElementById('resKey').innerText = generatedKey;
             document.getElementById('resExpiry').innerText = expiryString;
             document.getElementById('resultBox').classList.remove('hidden');
 
-            // Save to history (persistent)
-            saveToHistory(currentTime, productName, generatedKey, days, devices, price);
-        }
-
-        // Persistent History using localStorage
-        function saveToHistory(time, product, key, days, devices, price) {
-            let history = JSON.parse(localStorage.getItem('keyHistory')) || [];
-            history.unshift({
-                time: time,
-                product: product,
-                key: key,
-                days: days,
-                devices: devices,
-                price: price,
-                status: "ACTIVE"
-            });
-            localStorage.setItem('keyHistory', JSON.stringify(history));
-            loadHistory();
-        }
-
-        function loadHistory() {
+            const rowId = "row-" + Date.now();
             const tbody = document.getElementById('historyTableBody');
-            tbody.innerHTML = '';
-            let history = JSON.parse(localStorage.getItem('keyHistory')) || [];
-            
-            history.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.time}</td>
-                    <td><strong>${item.product}</strong><br><small style="color:var(--text-muted);">${item.days} Days | ${item.devices}</small></td>
-                    <td style="color:var(--accent-color); font-family:monospace;">${item.key}</td>
-                    <td>
-            
+            const row = document.createElement('tr');
+            row.id = rowId;
+            row.innerHTML = `
+                <td>${currentTime}</td>
+                <td><strong>${productName}</strong><br><small style="color:var(--text-muted);">${days} Days | ${devices}</small></td>
+                <td style="color:var(--accent-color); font-family:monospace;">${generatedKey}</td>
+                <td>
+                    <span class="status-cell badge-active">ACTIVE</span>
+                    <div class="history-actions">
+                        <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${generatedKey}')">Reset</button>
+                        <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${rowId}', '${generatedKey}')">Block</button>
+                    </div>
+                </td>
+            `;
+            tbody.insertBefore(row, tbody.firstChild);
+        }
+
+        function inlineResetKey(key) {
+            alert("Device binding for Key [" + key + "] has been successfully reset!");
+        }
+
+        function inlineBlockKey(rowId, key) {
+            const row = document.getElementById(rowId);
+            if(row) {
+                const statusCell = row.querySelector('.status-cell');
+                if(statusCell) {
+                    statusCell.className = "status-cell badge-blocked";
+                    statusCell.innerText = "BLOCKED";
+                }
+                const actionsDiv = row.querySelector('.history-actions');
+                if(actionsDiv) actionsDiv.style.display = 'none';
+            }
+
+            const currentResultKey = document.getElementById('resKey').innerText;
+            if(currentResultKey === key) {
+                const upperStatus = document.getElementById('resStatus');
+                upperStatus.className = "badge-blocked";
+                upperStatus.innerText = "BLOCKED";
+            }
+            alert("Key [" + key + "] has been successfully blocked!");
+        }
+
+        function copyKey() {
+            const keyText = document.getElementById('resKey').innerText;
+            if (keyText) {
+                navigator.clipboard.writeText(keyText);
+                alert("Key copied successfully: " + keyText);
+            }
+        }
+    </script>
+</body>
+</html>
