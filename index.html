@@ -330,7 +330,6 @@
 </head>
 <body>
 
-    <!-- 1. ENTRY/LOGIN PAGE -->
     <div id="loginPage" class="container">
         <h1>Hack Seller Panel</h1>
         <form id="loginForm" onsubmit="handleLogin(event)">
@@ -346,11 +345,9 @@
         </form>
     </div>
 
-    <!-- 2. MAIN DASHBOARD PAGE -->
     <div id="dashboardPage" class="container hidden">
         <h1>Hack Seller Panel</h1>
         
-        <!-- Top Profile Bar with Add Credit Feature -->
         <div class="profile-bar">
             <span>Welcome, Admin</span>
             <div class="wallet-section">
@@ -359,7 +356,6 @@
             </div>
         </div>
 
-        <!-- Admin Analytics Cards -->
         <div class="stats-grid">
             <div class="stat-card">
                 <p>Total Keys</p>
@@ -375,7 +371,6 @@
             </div>
         </div>
 
-        <!-- Configuration Form -->
         <div class="form-group">
             <label>Select Product</label>
             <select id="productSelect">
@@ -420,16 +415,13 @@
             </select>
         </div>
 
-        <!-- Real-time Price Display Card -->
         <div class="price-display">
             <span style="font-size: 14px; color: var(--text-muted);">Calculated Price:</span>
             <span id="calculatedPrice" class="price-val">₹40</span>
         </div>
 
-        <!-- Generate Button -->
         <button onclick="generateKey()">Generate Key</button>
 
-        <!-- Key Generation Output Box -->
         <div id="resultBox" class="result-box hidden">
             <div class="result-row">
                 <span>Status:</span>
@@ -456,7 +448,6 @@
             </div>
         </div>
 
-        <!-- KEY GENERATION HISTORY LOG -->
         <div class="history-section">
             <div class="history-title">Key Generation History</div>
             <div class="table-wrapper">
@@ -478,7 +469,8 @@
     </div>
 
     <script>
-        let currentBalance = 5000;
+        // Syncing with your structural balance value (₹9,870)
+        let currentBalance = 9870;
 
         // Setup Duration options dynamically
         const durationSelect = document.getElementById('durationSelect');
@@ -508,14 +500,14 @@
         // Add Credit Action Logic
         function addCreditPrompt() {
             let amountInput = prompt("Enter the credit amount to add (₹):");
-            if (amountInput === null) return; // cancel clicked
+            if (amountInput === null) return; 
             
             let amount = parseInt(amountInput);
             if (isNaN(amount) || amount <= 0) {
                 alert("Please enter a valid positive number!");
             } else {
                 currentBalance += amount;
-                document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString();
+                document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
                 alert("₹" + amount + " successfully credited to your account!");
             }
         }
@@ -602,4 +594,12 @@
         }
 
         function copyKey() {
-            
+            const keyText = document.getElementById('resKey').innerText;
+            if (keyText) {
+                navigator.clipboard.writeText(keyText);
+                alert("Key copied successfully: " + keyText);
+            }
+        }
+    </script>
+</body>
+</html>
