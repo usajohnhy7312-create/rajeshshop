@@ -469,13 +469,15 @@
     </div>
 
     <script>
-        // Setup initial balance strictly to ₹9,870 if not saved earlier
-        if (localStorage.getItem('panelBalance') === null) {
-            localStorage.setItem('panelBalance', 9870);
+        // Balance setup with direct numeric value safety
+        let currentBalance = 9870;
+        if (localStorage.getItem('panelBalance') !== null) {
+            currentBalance = parseInt(localStorage.getItem('panelBalance'));
+        } else {
+            localStorage.setItem('panelBalance', currentBalance);
         }
-        let currentBalance = parseInt(localStorage.getItem('panelBalance'));
         
-        // Render initial UI wallet display safely
+        // Render current state balance on UI safely
         document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
 
         // Setup Duration options dynamically (1 to 30 Days)
@@ -487,7 +489,7 @@
             durationSelect.appendChild(opt);
         }
 
-        // Price configuration (+10 Rupees update)
+        // Price setup update (+10 Rupees standard added)
         function updatePrice() {
             const days = parseInt(document.getElementById('durationSelect').value);
             let price = 50; 
@@ -497,12 +499,13 @@
             document.getElementById('calculatedPrice').innerText = "₹" + price;
         }
 
+        // Fixed Unbreakable Entry Flow
         function handleLogin(event) {
             event.preventDefault();
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
             updatePrice();
-            loadHistory(); // Persistent History load on successful entry
+            loadHistory(); 
         }
 
         function updateWalletUI() {
@@ -510,7 +513,7 @@
             document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
         }
 
-        // Add Credit system
+        // Add credit workflow
         function addCreditPrompt() {
             let amountInput = prompt("Enter the credit amount to add (₹):");
             if (amountInput === null) return; 
@@ -537,7 +540,7 @@
             return result;
         }
 
-        // Secure key generation & auto deduction logic
+        // Instant Balance deduction engine
         function generateKey() {
             const days = parseInt(document.getElementById('durationSelect').value);
             let currentPrice = 50;
@@ -545,13 +548,12 @@
                 currentPrice = 50 + (days - 1) * 20;
             }
 
-            // Safety balance check block
+            // Funds filter
             if (currentBalance < currentPrice) {
                 alert("Insufficient Balance! Please add credit first.");
                 return;
             }
 
-            // Deduct funds automatically
             currentBalance -= currentPrice;
             updateWalletUI();
 
@@ -588,8 +590,13 @@
                 status: "ACTIVE"
             };
 
-            // Permanent storage pipeline
-            let currentHistory = JSON.parse(localStorage.getItem('keyHistory')) || [];
+            // Injecting directly into localized pipeline
+            let currentHistory = [];
+            try {
+                let saved = localStorage.getItem('keyHistory');
+                if(saved) currentHistory = JSON.parse(saved);
+            } catch(e) { currentHistory = []; }
+
             currentHistory.unshift(historyItem);
             localStorage.setItem('keyHistory', JSON.stringify(currentHistory));
 
@@ -598,12 +605,11 @@
 
         function renderRow(item, prepend = false) {
             const tbody = document.getElementById('historyTableBody');
+            if(!tbody) return;
             const row = document.createElement('tr');
             row.id = item.id;
             
             let statusBadgeClass = item.status === "ACTIVE" ? "badge-active" : "badge-blocked";
             let actionsHTML = item.status === "ACTIVE" ? `
                 <div class="history-actions">
-                    <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${item.key}')">Reset</button>
-                    <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${item.id}', '${item.key}')">Block</button>
-    </div>
+                    <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${item.key}')">R
