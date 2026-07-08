@@ -102,34 +102,6 @@
             transform: scale(0.98);
         }
 
-        /* Side-by-side Action Buttons Row */
-        .action-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .btn-reset {
-            background: #21262d;
-            color: var(--warning-color);
-            border: 1px solid var(--warning-color);
-        }
-        .btn-reset:hover {
-            background: var(--warning-color);
-            color: #000;
-        }
-
-        .btn-block {
-            background: #21262d;
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-        }
-        .btn-block:hover {
-            background: var(--danger-color);
-            color: #000;
-        }
-
         .hidden {
             display: none;
         }
@@ -145,9 +117,34 @@
             border-left: 4px solid var(--accent-color);
         }
 
+        .wallet-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .wallet-amt {
             color: var(--accent-color);
             font-weight: bold;
+        }
+
+        .btn-add-credit {
+            background: rgba(0, 255, 102, 0.1);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            width: auto;
+            text-transform: none;
+            transition: all 0.3s;
+        }
+
+        .btn-add-credit:hover {
+            background: var(--accent-color);
+            color: #000;
         }
 
         .stats-grid {
@@ -216,19 +213,21 @@
         .badge-active {
             background: rgba(0, 255, 102, 0.2);
             color: var(--accent-color);
-            padding: 2px 6px;
+            padding: 3px 6px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
+            display: inline-block;
         }
 
         .badge-blocked {
             background: rgba(255, 59, 48, 0.2);
             color: var(--danger-color);
-            padding: 2px 6px;
+            padding: 3px 6px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
+            display: inline-block;
         }
 
         .key-display {
@@ -282,13 +281,50 @@
         }
 
         th, td {
-            padding: 10px;
+            padding: 10px 8px;
             border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
         }
 
         th {
             color: var(--text-muted);
             background: #1f242c;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .btn-table-action {
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+            text-transform: uppercase;
+        }
+
+        .btn-table-reset {
+            background: #1f242c;
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+        .btn-table-reset:hover {
+            background: var(--warning-color);
+            color: #000;
+        }
+
+        .btn-table-block {
+            background: #1f242c;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+        .btn-table-block:hover {
+            background: var(--danger-color);
+            color: #000;
         }
     </style>
 </head>
@@ -314,9 +350,13 @@
     <div id="dashboardPage" class="container hidden">
         <h1>Hack Seller Panel</h1>
         
+        <!-- Top Profile Bar with Add Credit Feature -->
         <div class="profile-bar">
             <span>Welcome, Admin</span>
-            <span class="wallet-amt">Amount: ₹5,000</span>
+            <div class="wallet-section">
+                <span id="walletDisplay" class="wallet-amt">Amount: ₹5,000</span>
+                <button class="btn-add-credit" onclick="addCreditPrompt()">Add Credit +</button>
+            </div>
         </div>
 
         <!-- Admin Analytics Cards -->
@@ -386,13 +426,8 @@
             <span id="calculatedPrice" class="price-val">₹40</span>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Generate Button -->
         <button onclick="generateKey()">Generate Key</button>
-        
-        <div class="action-row">
-            <button class="btn-reset" onclick="resetKeyAction()">Reset Key</button>
-            <button class="btn-block" onclick="blockKeyAction()">Block Key</button>
-        </div>
 
         <!-- Key Generation Output Box -->
         <div id="resultBox" class="result-box hidden">
@@ -431,7 +466,7 @@
                             <th>Time</th>
                             <th>Product</th>
                             <th>Key</th>
-                            <th>Status</th>
+                            <th>Status & Actions</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody">
@@ -443,9 +478,9 @@
     </div>
 
     <script>
-        let currentGeneratedKeyElementId = null;
+        let currentBalance = 5000;
 
-        // Setup Duration options 1 to 30 Days dynamically
+        // Setup Duration options dynamically
         const durationSelect = document.getElementById('durationSelect');
         for (let i = 1; i <= 30; i++) {
             let opt = document.createElement('option');
@@ -454,7 +489,6 @@
             durationSelect.appendChild(opt);
         }
 
-        // Decreasing incremental pricing logic
         function updatePrice() {
             const days = parseInt(document.getElementById('durationSelect').value);
             let price = 40;
@@ -464,7 +498,6 @@
             document.getElementById('calculatedPrice').innerText = "₹" + price;
         }
 
-        // Bypass Authentication Login Logic
         function handleLogin(event) {
             event.preventDefault();
             document.getElementById('loginPage').classList.add('hidden');
@@ -472,7 +505,21 @@
             updatePrice();
         }
 
-        // Dynamic Product Code Key Generator
+        // Add Credit Action Logic
+        function addCreditPrompt() {
+            let amountInput = prompt("Enter the credit amount to add (₹):");
+            if (amountInput === null) return; // cancel clicked
+            
+            let amount = parseInt(amountInput);
+            if (isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid positive number!");
+            } else {
+                currentBalance += amount;
+                document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString();
+                alert("₹" + amount + " successfully credited to your account!");
+            }
+        }
+
         function makeRandomKey(productPrefix) {
             let result = productPrefix + '-';
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -485,7 +532,6 @@
             return result;
         }
 
-        // Generate Logic
         function generateKey() {
             const selectEl = document.getElementById('productSelect');
             const productName = selectEl.options[selectEl.selectedIndex].text;
@@ -499,10 +545,8 @@
             const now = new Date();
             now.setDate(now.getDate() + days);
             const expiryString = now.toLocaleString();
-
             const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            // Reset Output Badge Status to Active
             const statusBadge = document.getElementById('resStatus');
             statusBadge.className = "badge-active";
             statusBadge.innerText = "ACTIVE";
@@ -513,10 +557,7 @@
             document.getElementById('resExpiry').innerText = expiryString;
             document.getElementById('resultBox').classList.remove('hidden');
 
-            // Unique ID for the latest row to allow live blocking
             const rowId = "row-" + Date.now();
-            currentGeneratedKeyElementId = rowId;
-
             const tbody = document.getElementById('historyTableBody');
             const row = document.createElement('tr');
             row.id = rowId;
@@ -524,55 +565,41 @@
                 <td>${currentTime}</td>
                 <td><strong>${productName}</strong><br><small style="color:var(--text-muted);">${days} Days | ${devices}</small></td>
                 <td style="color:var(--accent-color); font-family:monospace;">${generatedKey}</td>
-                <td><span class="status-cell badge-active">ACTIVE</span></td>
+                <td>
+                    <span class="status-cell badge-active">ACTIVE</span>
+                    <div class="history-actions">
+                        <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${generatedKey}')">Reset</button>
+                        <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${rowId}', '${generatedKey}')">Block</button>
+                    </div>
+                </td>
             `;
             tbody.insertBefore(row, tbody.firstChild);
         }
 
-        // Reset Action Button Function
-        function resetKeyAction() {
-            const currentKey = document.getElementById('resKey').innerText;
-            if(!currentKey) {
-                alert("No key available to reset.");
-                return;
-            }
-            alert("Device binding for Key " + currentKey + " has been successfully reset!");
+        function inlineResetKey(key) {
+            alert("Device binding for Key [" + key + "] has been successfully reset!");
         }
 
-        // Block Action Button Function
-        function blockKeyAction() {
-            const currentKey = document.getElementById('resKey').innerText;
-            if(!currentKey) {
-                alert("No active key found to block.");
-                return;
-            }
-
-            // Change Active Box status to BLOCKED
-            const statusBadge = document.getElementById('resStatus');
-            statusBadge.className = "badge-blocked";
-            statusBadge.innerText = "BLOCKED";
-
-            // Update status in the History table log row
-            if(currentGeneratedKeyElementId) {
-                const targetRow = document.getElementById(currentGeneratedKeyElementId);
-                if(targetRow) {
-                    const statusCell = targetRow.querySelector('.status-cell');
-                    if(statusCell) {
-                        statusCell.className = "status-cell badge-blocked";
-                        statusCell.innerText = "BLOCKED";
-                    }
+        function inlineBlockKey(rowId, key) {
+            const row = document.getElementById(rowId);
+            if(row) {
+                const statusCell = row.querySelector('.status-cell');
+                if(statusCell) {
+                    statusCell.className = "status-cell badge-blocked";
+                    statusCell.innerText = "BLOCKED";
                 }
+                const actionsDiv = row.querySelector('.history-actions');
+                if(actionsDiv) actionsDiv.style.display = 'none';
             }
-            alert("Key " + currentKey + " has been successfully blocked!");
+
+            const currentResultKey = document.getElementById('resKey').innerText;
+            if(currentResultKey === key) {
+                const upperStatus = document.getElementById('resStatus');
+                upperStatus.className = "badge-blocked";
+                upperStatus.innerText = "BLOCKED";
+            }
+            alert("Key [" + key + "] has been successfully blocked!");
         }
 
         function copyKey() {
-            const keyText = document.getElementById('resKey').innerText;
-            if (keyText) {
-                navigator.clipboard.writeText(keyText);
-                alert("Key copied successfully: " + keyText);
-            }
-        }
-    </script>
-</body>
-</html>
+            
