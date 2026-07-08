@@ -417,7 +417,7 @@
 
         <div class="price-display">
             <span style="font-size: 14px; color: var(--text-muted);">Calculated Price:</span>
-            <span id="calculatedPrice" class="price-val">₹40</span>
+            <span id="calculatedPrice" class="price-val">₹50</span>
         </div>
 
         <button onclick="generateKey()">Generate Key</button>
@@ -469,8 +469,9 @@
     </div>
 
     <script>
-        // Syncing with your structural balance value (₹9,870)
-        let currentBalance = 9870;
+        // Check if balance already exists in memory, else set to ₹9,870
+        let currentBalance = localStorage.getItem('panelBalance') ? parseInt(localStorage.getItem('panelBalance')) : 9870;
+        document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
 
         // Setup Duration options dynamically
         const durationSelect = document.getElementById('durationSelect');
@@ -481,11 +482,12 @@
             durationSelect.appendChild(opt);
         }
 
+        // Updated Price Logic (+10 Rupees Increased)
         function updatePrice() {
             const days = parseInt(document.getElementById('durationSelect').value);
-            let price = 40;
+            let price = 50; // Increased base price from 40 to 50
             if (days > 1) {
-                price = 40 + (days - 1) * 20; 
+                price = 50 + (days - 1) * 20; 
             }
             document.getElementById('calculatedPrice').innerText = "₹" + price;
         }
@@ -495,6 +497,12 @@
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
             updatePrice();
+            loadHistory(); // Load saved history on login
+        }
+
+        function updateWalletUI() {
+            localStorage.setItem('panelBalance', currentBalance);
+            document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
         }
 
         // Add Credit Action Logic
@@ -507,7 +515,7 @@
                 alert("Please enter a valid positive number!");
             } else {
                 currentBalance += amount;
-                document.getElementById('walletDisplay').innerText = "Amount: ₹" + currentBalance.toLocaleString('en-IN');
+                updateWalletUI();
                 alert("₹" + amount + " successfully credited to your account!");
             }
         }
@@ -524,14 +532,28 @@
             return result;
         }
 
+        // Key Generation with Auto Balance Deduction & Permanent Storage
         function generateKey() {
+            const days = parseInt(document.getElementById('durationSelect').value);
+            let currentPrice = 50;
+            if (days > 1) {
+                currentPrice = 50 + (days - 1) * 20;
+            }
+
+            // Check if user has sufficient balance
+            if (currentBalance < currentPrice) {
+                alert("Insufficient Balance! Please add credit first.");
+                return;
+            }
+
+            // Deduct Balance
+            currentBalance -= currentPrice;
+            updateWalletUI();
+
             const selectEl = document.getElementById('productSelect');
             const productName = selectEl.options[selectEl.selectedIndex].text;
             const productPrefix = selectEl.value;
-            
-            const days = parseInt(document.getElementById('durationSelect').value);
             const devices = document.getElementById('deviceSelect').value;
-            
             const generatedKey = makeRandomKey(productPrefix);
             
             const now = new Date();
@@ -550,56 +572,38 @@
             document.getElementById('resultBox').classList.remove('hidden');
 
             const rowId = "row-" + Date.now();
+            
+            // Create item object for storage
+            const historyItem = {
+                id: rowId,
+                time: currentTime,
+                productName: productName,
+                days: days,
+                devices: devices,
+                key: generatedKey,
+                status: "ACTIVE"
+            };
+
+            // Save to localStorage
+            let currentHistory = JSON.parse(localStorage.getItem('keyHistory')) || [];
+            currentHistory.unshift(historyItem);
+            localStorage.setItem('keyHistory', JSON.stringify(currentHistory));
+
+            renderRow(historyItem, true);
+        }
+
+        // Render history log row helper
+        function renderRow(item, prepend = false) {
             const tbody = document.getElementById('historyTableBody');
             const row = document.createElement('tr');
-            row.id = rowId;
-            row.innerHTML = `
-                <td>${currentTime}</td>
-                <td><strong>${productName}</strong><br><small style="color:var(--text-muted);">${days} Days | ${devices}</small></td>
-                <td style="color:var(--accent-color); font-family:monospace;">${generatedKey}</td>
-                <td>
-                    <span class="status-cell badge-active">ACTIVE</span>
-                    <div class="history-actions">
-                        <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${generatedKey}')">Reset</button>
-                        <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${rowId}', '${generatedKey}')">Block</button>
-                    </div>
-                </td>
-            `;
-            tbody.insertBefore(row, tbody.firstChild);
-        }
+            row.id = item.id;
+            
+            let statusBadgeClass = item.status === "ACTIVE" ? "badge-active" : "badge-blocked";
+            let actionsHTML = item.status === "ACTIVE" ? `
+                <div class="history-actions">
+                    <button class="btn-table-action btn-table-reset" onclick="inlineResetKey('${item.key}')">Reset</button>
+                    <button class="btn-table-action btn-table-block" onclick="inlineBlockKey('${item.id}', '${item.key}')">Block</button>
+                </div>
+            ` : '';
 
-        function inlineResetKey(key) {
-            alert("Device binding for Key [" + key + "] has been successfully reset!");
-        }
-
-        function inlineBlockKey(rowId, key) {
-            const row = document.getElementById(rowId);
-            if(row) {
-                const statusCell = row.querySelector('.status-cell');
-                if(statusCell) {
-                    statusCell.className = "status-cell badge-blocked";
-                    statusCell.innerText = "BLOCKED";
-                }
-                const actionsDiv = row.querySelector('.history-actions');
-                if(actionsDiv) actionsDiv.style.display = 'none';
-            }
-
-            const currentResultKey = document.getElementById('resKey').innerText;
-            if(currentResultKey === key) {
-                const upperStatus = document.getElementById('resStatus');
-                upperStatus.className = "badge-blocked";
-                upperStatus.innerText = "BLOCKED";
-            }
-            alert("Key [" + key + "] has been successfully blocked!");
-        }
-
-        function copyKey() {
-            const keyText = document.getElementById('resKey').innerText;
-            if (keyText) {
-                navigator.clipboard.writeText(keyText);
-                alert("Key copied successfully: " + keyText);
-            }
-        }
-    </script>
-</body>
-</html>
+       
